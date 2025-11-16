@@ -1,43 +1,73 @@
 {% extends "core/base.html" %}
-{% block title %}Live Auctions | AuctionShop{% endblock %}
+{% block title %}Auctions | AuctionShop{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>Live Listings</h1>
-  <p class="text-muted">
-    Browse items for <strong>auction</strong> and <strong>buy-now</strong>.
-  </p>
-</div>
+<main>
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Browse Auctions & Buy-Now Listings</h1>
+      <p>
+        Explore active items from all sellers. Join live auctions or buy instantly at a fixed price.
+      </p>
 
-<div class="grid">
-  {% for product in products %}
-    <div class="card">
-      {% if product.image %}
-        <img src="{{ product.image.url }}" alt="{{ product.title }}">
-      {% endif %}
-
-      <h3>{{ product.title }}</h3>
-      <p>{{ product.description|truncatechars:90 }}</p>
-
-      {% if product.is_auction %}
-        <p class="price">
-          Current bid: Rs. {{ product.highest_bid|default:product.starting_bid }}
-        </p>
-        <p class="text-muted small">
-          Ends: {{ product.auction_end|date:"Y-m-d H:i" }}
-        </p>
-        <a href="{% url 'auctions:auction_detail' product.pk %}" class="btn">
-          View &amp; Bid
-        </a>
+      {% if user.is_authenticated %}
+        <div style="margin-top: 1rem;">
+          <a href="{% url 'auctions:product_add' %}" class="btn">
+            + Add product
+          </a>
+        </div>
       {% else %}
-        <p class="price">Price: Rs. {{ product.price }}</p>
-        <a href="{% url 'auctions:auction_detail' product.pk %}" class="btn">
-          View details
-        </a>
+        <p style="margin-top: 1rem; font-size: .85rem; color: var(--muted);">
+          <a href="{% url 'accounts:login' %}">Log in</a> to list your own products.
+        </p>
       {% endif %}
     </div>
-  {% empty %}
-    <p>No listings yet. Check back soon.</p>
-  {% endfor %}
-</div>
+  </section>
+
+  <section class="features">
+    <div class="features-grid">
+      {% for product in products %}
+        <article class="feature-card">
+          {% if product.image %}
+            <img src="{{ product.image.url }}"
+                 alt="{{ product.title }}"
+                 style="width:100%;border-radius:8px;margin-bottom:8px;">
+          {% endif %}
+
+          <h4>{{ product.title }}</h4>
+
+          <p>
+            {{ product.description|truncatewords:18 }}
+          </p>
+
+          {% if product.is_auction %}
+            <p class="price">
+              Current bid:
+              {% if product.highest_bid %}
+                Rs. {{ product.highest_bid }}
+              {% else %}
+                Rs. {{ product.starting_bid }}
+              {% endif %}
+            </p>
+            {% if product.auction_end %}
+              <p style="font-size:.8rem;color:var(--muted);">
+                Ends at: {{ product.auction_end }}
+              </p>
+            {% endif %}
+          {% else %}
+            <p class="price">Price: Rs. {{ product.price }}</p>
+          {% endif %}
+
+          <a href="{% url 'auctions:listing_detail' product.pk %}" class="btn">
+            View details
+          </a>
+        </article>
+      {% empty %}
+        <p style="grid-column: 1 / -1; text-align:center; color:var(--muted);">
+          No products available yet. Be the first to list an item!
+        </p>
+      {% endfor %}
+    </div>
+  </section>
+</main>
 {% endblock %}
