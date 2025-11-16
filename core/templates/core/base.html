@@ -18,11 +18,10 @@
             <a href="/cart/">Cart</a>
 
             {% if user.is_authenticated %}
-                <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-logout">Logout</button>
-</form>
-
+            <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-logout">Logout</button>
+            </form>
             {% else %}
                 <a href="{% url 'accounts:login' %}" class="btn btn-login">Login</a>
             {% endif %}
@@ -40,12 +39,27 @@
         </div>
     </section>
 
-    <main>
+    <!-- ⭐ Added animation class here -->
+    <main class="page-enter">
         {% block content %}{% endblock %}
     </main>
 
     <footer>
         <p>© 2025 Auction Shop — Built with ❤️ using Django | Dark Theme Mode 🌙</p>
     </footer>
+
+    <!-- Optional ripple script if you use ripple effect -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".btn").forEach(btn => {
+                btn.addEventListener("click", function (e) {
+                    const rect = this.getBoundingClientRect();
+                    this.style.setProperty("--x", (e.clientX - rect.left) + "px");
+                    this.style.setProperty("--y", (e.clientY - rect.top) + "px");
+                });
+            });
+        });
+    </script>
+
 </body>
 </html>
