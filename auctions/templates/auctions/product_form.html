@@ -4,13 +4,36 @@
 {% block content %}
 <div class="auth-wrapper">
   <div class="auth-card auth-wide">
-    <h1 class="auth-title">Add Product</h1>
+    <h1 class="auth-title">Add a new product</h1>
 
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn btn-full">Save</button>
+
+      {% for field in form %}
+        <div class="form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}
+            <div class="help-text">{{ field.help_text }}</div>
+          {% endif %}
+          {% for error in field.errors %}
+            <div class="form-errors">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+
+      {% if form.non_field_errors %}
+        <div class="form-errors">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-full">Save product</button>
     </form>
+
+    <div class="auth-links">
+      <a href="{% url 'auctions:listing_list' %}">Back to listings</a>
+    </div>
   </div>
 </div>
 {% endblock %}
