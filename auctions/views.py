@@ -14,7 +14,7 @@ from .forms import ProductForm
 
 def auction_list(request):
     """
-    Show all active products (both Buy Now and Auctions).
+    Show all active products (both auctions and buy-now).
     """
     products = Product.objects.filter(is_active=True).order_by("-created_at")
     return render(request, "auctions/listing_list.html", {"products": products})
@@ -26,10 +26,8 @@ def auction_detail(request, pk):
     """
     product = get_object_or_404(Product, pk=pk)
     bids = product.bids.order_by("-amount", "-created_at") if product.is_auction else []
-
     context = {
         "product": product,
-        "object": product,   # so your old template using {{ object }} still works
         "bids": bids,
     }
     return render(request, "auctions/listing_detail.html", context)
@@ -48,7 +46,6 @@ def place_bid(request, pk):
     )
 
     if request.method == "POST":
-        # read amount safely
         try:
             amount = Decimal(request.POST.get("amount", "0"))
         except Exception:
@@ -104,20 +101,13 @@ def buy_now(request, pk):
 @login_required
 def product_create(request):
     """
-    Let a logged-in user create a product (sell item).
+    Allow any logged-in user (including admin) to add a product.
     """
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
-            product = form.save(commit=False)
+            product: Product = form.save(commit=False)
             product.seller = request.user
-
-            # clean up fields depending on type
-            if product.listing_type == "BUY":
-                product.starting_bid = None
-                product.min_increment = None
-                product.auction_end = None
-
             product.save()
             messages.success(request, "Product created successfully.")
             return redirect("auctions:listing_detail", pk=product.pk)
@@ -129,13 +119,20 @@ def product_create(request):
 
 def product_status_json(request, pk):
     """
-    Small JSON API for real-time status: current bid, time left, active flag.
+    Lightweight JSON status for a product, useful for real-time timers.
     """
     product = get_object_or_404(Product, pk=pk)
+
     data = {
-        "is_active": product.is_active,
+        "id": product.pk,
+        "title": product.title,
+        "listing_type": product.listing_type,
         "is_auction": product.is_auction,
+        "is_active": product.is_active,
+        "price": str(product.price),
+        "starting_bid": str(product.starting_bid) if product.starting_bid is not None else None,
+        "min_increment": str(product.min_increment) if product.min_increment is not None else None,
         "highest_bid": str(product.highest_bid) if product.highest_bid is not None else None,
-        "time_left": product.time_left_seconds,
+        "time_left_seconds": product.time_left_seconds,
     }
     return JsonResponse(data)
