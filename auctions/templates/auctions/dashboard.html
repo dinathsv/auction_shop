@@ -1,0 +1,120 @@
+{% extends "core/base.html" %}
+{% block title %}My dashboard | AuctionShop{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>My dashboard</h1>
+  <p class="muted">
+    Overview of your selling items, bids, watchlist, and orders.
+  </p>
+</div>
+
+<div class="dashboard-grid">
+  <!-- Selling cards -->
+  <section class="dashboard-section">
+    <h2>Selling ({{ selling|length }})</h2>
+    <p class="muted">
+      Active auctions: {{ active_auctions }} · Buy-now items: {{ active_buy_now }}
+    </p>
+
+    <div class="grid">
+      {% for p in selling %}
+        <article class="card">
+          {% if p.image %}
+            <img src="{{ p.image.url }}" alt="{{ p.title }}">
+          {% endif %}
+          <h3>{{ p.title }}</h3>
+
+          {% if p.is_auction %}
+            <p class="price">
+              Current bid: Rs. {{ p.highest_bid|default:p.starting_bid }}
+            </p>
+            {% if p.auction_end %}
+              <p class="muted">
+                Ends: {{ p.auction_end|date:"Y-m-d H:i" }}
+              </p>
+            {% endif %}
+          {% else %}
+            <p class="price">Price: Rs. {{ p.price }}</p>
+          {% endif %}
+
+          <a href="{% url 'auctions:listing_detail' p.pk %}" class="btn">
+            View listing
+          </a>
+        </article>
+      {% empty %}
+        <p class="muted">You aren't selling anything yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- My bids -->
+  <section class="dashboard-section">
+    <h2>My bids</h2>
+    <ul class="bids-list">
+      {% for b in my_bids %}
+        <li class="bid-item">
+          <span class="bid-user">
+            On <a href="{% url 'auctions:listing_detail' b.product.pk %}">
+              {{ b.product.title }}
+            </a>
+          </span>
+          <span class="bid-amount">Rs. {{ b.amount }}</span>
+          <span class="bid-time">
+            {{ b.created_at|date:"Y-m-d H:i" }}
+          </span>
+        </li>
+      {% empty %}
+        <li class="bid-empty">You haven't placed any bids yet.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <!-- Watchlist -->
+  <section class="dashboard-section">
+    <h2>Watchlist ({{ watch_items|length }})</h2>
+    <div class="grid">
+      {% for item in watch_items %}
+        {% with product=item.product %}
+          <article class="card">
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.title }}">
+            {% endif %}
+            <h3>{{ product.title }}</h3>
+            <p class="muted">Seller: @{{ product.seller.username }}</p>
+            <a href="{% url 'auctions:listing_detail' product.pk %}" class="btn">
+              View listing
+            </a>
+          </article>
+        {% endwith %}
+      {% empty %}
+        <p class="muted">Nothing in your watchlist yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Orders -->
+  <section class="dashboard-section">
+    <h2>Orders</h2>
+    <ul class="orders-list">
+      {% for o in orders %}
+        <li class="order-item">
+          <span>
+            <strong>#{{ o.id }}</strong> –
+            <a href="{% url 'auctions:listing_detail' o.product.pk %}">
+              {{ o.product.title }}
+            </a>
+          </span>
+          <span>Rs. {{ o.price }}</span>
+          <span class="badge">{{ o.status }}</span>
+          <span class="muted">
+            {{ o.created_at|date:"Y-m-d H:i" }}
+          </span>
+        </li>
+      {% empty %}
+        <li class="muted">No orders yet.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}
