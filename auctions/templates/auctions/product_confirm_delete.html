@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+{% block title %}Delete {{ product.title }} | AuctionShop{% endblock %}
+
+{% block content %}
+<div class="product-form-page">
+  <div class="product-form-card danger">
+    <header class="product-form-header">
+      <h1>Delete product</h1>
+      <p>
+        You are about to permanently delete
+        <strong>"{{ product.title }}"</strong>.
+        This action cannot be undone.
+      </p>
+    </header>
+
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-full">
+        Yes, delete this product
+      </button>
+    </form>
+
+    <div class="product-form-footer">
+      <a href="{% url 'auctions:listing_detail' product.pk %}" class="link-soft">
+        ← Cancel and go back
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
