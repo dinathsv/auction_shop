@@ -2,69 +2,236 @@
 {% block title %}{{ product.title }} | AuctionShop{% endblock %}
 
 {% block content %}
-<div class="product-detail">
-  <div class="product-main">
-    {% if product.image %}
-      <img src="{{ product.image.url }}" alt="{{ product.title }}" class="product-image">
-    {% endif %}
-
-    <h1>{{ product.title }}</h1>
-    <p class="text-muted">Seller: {{ product.seller.username }}</p>
-    <p>{{ product.description }}</p>
-
-    {% if product.is_auction %}
-      <h3>Current auction</h3>
-      <p class="price">
-        Current bid: Rs. {{ product.highest_bid|default:product.starting_bid }}
-      </p>
-      <p class="text-muted small">
-        Ends: {{ product.auction_end|date:"Y-m-d H:i" }}
-      </p>
-
-      {% if product.time_left_seconds > 0 %}
-        <form method="post" action="{% url 'auctions:place_bid' product.pk %}">
-          {% csrf_token %}
-          <label for="id_amount">Your bid</label>
-          <input
-            id="id_amount"
-            name="amount"
-            type="number"
-            step="0.01"
-            required
-          >
-          <button type="submit" class="btn btn-full">Place bid</button>
-        </form>
+<div class="product-page">
+  <div class="product-layout">
+    <!-- LEFT: IMAGE -->
+    <div class="product-media">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.title }}">
       {% else %}
-        <p><strong>Auction ended.</strong></p>
+        <div class="product-media-placeholder">
+          <span>No image uploaded</span>
+        </div>
       {% endif %}
+    </div>
 
-      <h3>Recent bids</h3>
-      <ul>
-        {% for b in bids %}
-          <li>
-            {{ b.bidder.username }}: Rs. {{ b.amount }}
-            <span class="text-muted small">
-              ({{ b.created_at|date:"Y-m-d H:i" }})
+    <!-- RIGHT: DETAILS + BID PANEL -->
+    <div class="product-main">
+      <div class="product-title-row">
+        <div>
+          <h1 class="product-title">{{ product.title }}</h1>
+          <p class="product-subtitle">
+            Seller:
+            <span class="product-seller">
+              {{ product.seller.username }}
             </span>
-          </li>
-        {% empty %}
-          <li>No bids yet.</li>
-        {% endfor %}
-      </ul>
+          </p>
 
-    {% else %}
-      <h3>Buy now</h3>
-      <p class="price">Price: Rs. {{ product.price }}</p>
+          {# ---------- OWNER / ADMIN ACTIONS ---------- #}
+          {% if user.is_staff or user == product.seller %}
+            <div class="product-owner-actions">
+              <a href="{% url 'auctions:product_edit' product.pk %}" class="link-soft">
+                ✏ Edit
+              </a>
+              |
+              <a href="{% url 'auctions:product_delete' product.pk %}" class="link-soft">
+                🗑 Delete
+              </a>
+            </div>
+          {% endif %}
+          {# ------------------------------------------- #}
+        </div>
 
-      {% if product.is_active %}
-        <form method="post" action="{% url 'auctions:buy_now' product.pk %}">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-full">Buy now</button>
-        </form>
-      {% else %}
-        <p><strong>This item has been sold.</strong></p>
+        {% if product.is_auction %}
+          <span class="badge badge-auction">Auction</span>
+        {% else %}
+          <span class="badge badge-buy">Buy&nbsp;Now</span>
+        {% endif %}
+      </div>
+
+      {% if product.description %}
+        <p class="product-description">{{ product.description }}</p>
       {% endif %}
-    {% endif %}
+
+      <div class="product-panels">
+        <!-- PRICE / STATUS PANEL -->
+        <section class="product-panel">
+          {% if product.is_auction %}
+            <p class="panel-label">Current auction</p>
+
+            {% with current=product.highest_bid|default:product.starting_bid %}
+              <p class="price-label">Current bid</p>
+              <p class="price-value">Rs. {{ current }}</p>
+            {% endwith %}
+
+            {% if product.auction_end %}
+              <p class="time-row">
+                <span class="time-chip">
+                  Ends in:
+                  <span
+                    id="countdown"
+                    class="time-countdown"
+                    data-end="{{ product.auction_end|date:'c' }}"
+                    data-active="{% if product.is_active %}1{% else %}0{% endif %}"
+                  ></span>
+                </span>
+              </p>
+            {% endif %}
+          {% else %}
+            <p class="panel-label">Buy now</p>
+            <p class="price-label">Price</p>
+            <p class="price-value">Rs. {{ product.price }}</p>
+          {% endif %}
+        </section>
+
+        <!-- BID / BUY PANEL -->
+        <section class="product-panel product-panel-accent">
+          {% if product.is_auction %}
+            {% if product.is_active %}
+              <h2 class="panel-title">Place a bid</h2>
+              <form
+                id="bid-form"
+                method="post"
+                action="{% url 'auctions:place_bid' product.pk %}"
+                class="bid-form"
+              >
+                {% csrf_token %}
+                <label class="field-label" for="bid-amount">Your bid</label>
+                <input
+                  id="bid-amount"
+                  type="number"
+                  step="0.01"
+                  name="amount"
+                  class="bid-input"
+                  required
+                />
+                <button id="bid-button" type="submit" class="btn btn-full">
+                  Place bid
+                </button>
+              </form>
+            {% else %}
+              <h2 class="panel-title">Auction closed</h2>
+              <p class="muted">
+                This listing is no longer accepting bids.
+              </p>
+            {% endif %}
+          {% else %}
+            {% if product.is_active %}
+              <h2 class="panel-title">Instant purchase</h2>
+              <p class="muted">
+                Click below to mark this item as purchased (demo flow).
+              </p>
+              <form
+                method="post"
+                action="{% url 'auctions:buy_now' product.pk %}"
+              >
+                {% csrf_token %}
+                <button type="submit" class="btn btn-full">
+                  Buy now for Rs. {{ product.price }}
+                </button>
+              </form>
+            {% else %}
+              <h2 class="panel-title">Item sold</h2>
+              <p class="muted">This product has been purchased.</p>
+            {% endif %}
+          {% endif %}
+        </section>
+      </div>
+
+      <!-- RECENT BIDS -->
+      {% if product.is_auction %}
+        <section class="bids-section">
+          <h3 class="bids-title">Recent bids</h3>
+          <ul class="bids-list">
+            {% for b in bids %}
+              <li class="bid-item">
+                <span class="bid-user">@{{ b.bidder.username }}</span>
+                <span class="bid-amount">Rs. {{ b.amount }}</span>
+                <span class="bid-time">
+                  {{ b.created_at|date:"Y-m-d H:i" }}
+                </span>
+              </li>
+            {% empty %}
+              <li class="bid-empty">No bids yet.</li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      <div class="product-footer-links">
+        <a href="{% url 'auctions:listing_list' %}" class="link-soft">
+          ← Back to listings
+        </a>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- ============================= -->
+<!--   LIVE COUNTDOWN SCRIPT       -->
+<!-- ============================= -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const el = document.getElementById("countdown");
+  if (!el) return;
+
+  const isActive = el.dataset.active === "1";
+  const endTime = new Date(el.dataset.end); // ISO 8601 -> safe in JS
+
+  // If already inactive, just show ended message.
+  if (!isActive) {
+    el.textContent = "Auction closed";
+    el.classList.add("countdown-ended");
+    return;
+  }
+
+  const bidButton = document.getElementById("bid-button");
+  const bidForm = document.getElementById("bid-form");
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = endTime - now;
+
+    if (diff <= 0) {
+      el.textContent = "Auction ended";
+      el.classList.remove("countdown-warn");
+      el.classList.add("countdown-ended");
+
+      if (bidButton) {
+        bidButton.disabled = true;
+        bidButton.textContent = "Auction ended";
+      }
+      if (bidForm) {
+        bidForm.classList.add("bid-form-disabled");
+      }
+
+      clearInterval(timer);
+      return;
+    }
+
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    let text = "";
+    if (days > 0) text += days + "d ";
+    text += hours.toString().padStart(2, "0") + "h ";
+    text += minutes.toString().padStart(2, "0") + "m ";
+    text += seconds.toString().padStart(2, "0") + "s";
+
+    el.textContent = text;
+
+    // visual warning in last minute
+    if (diff < 60000) {
+      el.classList.add("countdown-warn");
+    } else {
+      el.classList.remove("countdown-warn");
+    }
+  }
+
+  updateCountdown();
+  const timer = setInterval(updateCountdown, 1000);
+});
+</script>
 {% endblock %}
