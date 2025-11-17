@@ -1,0 +1,48 @@
+{% extends "core/base.html" %}
+{% block title %}My watchlist | AuctionShop{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>My watchlist</h1>
+  <p class="muted">
+    Items you’re tracking across auctions and buy-now listings.
+  </p>
+</div>
+
+<div class="grid">
+  {% for item in items %}
+    {% with product=item.product %}
+      <article class="card">
+        {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.title }}">
+        {% endif %}
+        <h3>{{ product.title }}</h3>
+        <p class="muted">
+          Seller: @{{ product.seller.username }}
+        </p>
+
+        {% if product.is_auction %}
+          <p class="price">
+            Current bid: Rs. {{ product.highest_bid|default:product.starting_bid }}
+          </p>
+          {% if product.auction_end %}
+            <p class="muted">
+              Ends: {{ product.auction_end|date:"Y-m-d H:i" }}
+            </p>
+          {% endif %}
+        {% else %}
+          <p class="price">Price: Rs. {{ product.price }}</p>
+        {% endif %}
+
+        <a href="{% url 'auctions:listing_detail' product.pk %}" class="btn">
+          View listing
+        </a>
+      </article>
+    {% endwith %}
+  {% empty %}
+    <p class="muted">
+      You don’t have anything in your watchlist yet.
+    </p>
+  {% endfor %}
+</div>
+{% endblock %}
