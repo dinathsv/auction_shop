@@ -1,26 +1,19 @@
 {% extends "core/base.html" %}
-{% block title %}Add Product | AuctionShop{% endblock %}
+{% block title %}{{ title|default:"Add product" }} | AuctionShop{% endblock %}
 
 {% block content %}
-<div class="auth-wrapper">
-  <div class="auth-card auth-wide">
-    <h1 class="auth-title">Add a new product</h1>
+<div class="product-form-page">
+  <div class="product-form-card">
+    <header class="product-form-header">
+      <h1>{{ title|default:"Add a new product" }}</h1>
+      <p>
+        Upload your item, choose whether it’s a direct sale or an auction,
+        and set your prices. You can manage everything later from the admin.
+      </p>
+    </header>
 
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
-
-      {% for field in form %}
-        <div class="form-group">
-          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-          {% if field.help_text %}
-            <div class="help-text">{{ field.help_text }}</div>
-          {% endif %}
-          {% for error in field.errors %}
-            <div class="form-errors">{{ error }}</div>
-          {% endfor %}
-        </div>
-      {% endfor %}
 
       {% if form.non_field_errors %}
         <div class="form-errors">
@@ -28,11 +21,127 @@
         </div>
       {% endif %}
 
-      <button type="submit" class="btn btn-full">Save product</button>
+      <div class="product-form-grid">
+        <!-- BASIC INFO -->
+        <section class="form-section">
+          <h2>Basics</h2>
+
+          <div class="form-field">
+            {{ form.title.label_tag }}
+            {{ form.title }}
+            {% for error in form.title.errors %}
+              <p class="field-error">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="form-field">
+            {{ form.category.label_tag }}
+            {{ form.category }}
+            {% for error in form.category.errors %}
+              <p class="field-error">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="form-field">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+            {% for error in form.description.errors %}
+              <p class="field-error">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="form-field">
+            {{ form.image.label_tag }}
+            {{ form.image }}
+            {% for error in form.image.errors %}
+              <p class="field-error">{{ error }}</p>
+            {% endfor %}
+          </div>
+        </section>
+
+        <!-- PRICING -->
+        <section class="form-section">
+          <h2>Pricing & type</h2>
+
+          <div class="form-field">
+            {{ form.listing_type.label_tag }}
+            {{ form.listing_type }}
+            <p class="help-text">
+              <strong>Buy Now</strong> = fixed price.
+              <strong>Auction</strong> = timed bidding.
+            </p>
+            {% for error in form.listing_type.errors %}
+              <p class="field-error">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              {{ form.price.label_tag }}
+              {{ form.price }}
+              {% for error in form.price.errors %}
+                <p class="field-error">{{ error }}</p>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="form-divider">
+            <span>Auction options</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              {{ form.starting_bid.label_tag }}
+              {{ form.starting_bid }}
+              {% for error in form.starting_bid.errors %}
+                <p class="field-error">{{ error }}</p>
+              {% endfor %}
+            </div>
+            <div class="form-field">
+              {{ form.min_increment.label_tag }}
+              {{ form.min_increment }}
+              {% for error in form.min_increment.errors %}
+                <p class="field-error">{{ error }}</p>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="form-field">
+            {{ form.auction_end.label_tag }}
+            {{ form.auction_end }}
+            <p class="help-text">
+              Used only when listing type is set to <strong>Auction</strong>.
+            </p>
+            {% for error in form.auction_end.errors %}
+              <p class="field-error">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="form-field">
+            {{ form.is_active.label_tag }}
+            {{ form.is_active }}
+            {% for error in form.is_active.errors %}
+              <p class="field-error">{{ error }}</p>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+
+      <button type="submit" class="btn btn-full">
+        Save product
+      </button>
     </form>
 
-    <div class="auth-links">
-      <a href="{% url 'auctions:listing_list' %}">Back to listings</a>
+    <div class="product-form-footer">
+      {% if product %}
+        <a href="{% url 'auctions:listing_detail' product.pk %}" class="link-soft">
+          ← Back to listing
+        </a>
+      {% else %}
+        <a href="{% url 'auctions:listing_list' %}" class="link-soft">
+          ← Back to listings
+        </a>
+      {% endif %}
     </div>
   </div>
 </div>
