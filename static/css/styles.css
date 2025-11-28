@@ -544,7 +544,6 @@ footer {
   }
 }
 /* ========== MOTION & ANIMATION PACK ========== */
-/* Paste this near the end of styles.css */
 
 /* 1. Page fade + slide on load */
 .page-enter {
@@ -588,8 +587,8 @@ footer {
 
 /* 4. Buttons: smooth hover + light lift */
 .btn {
-  position: relative;            /* needed for ripple */
-  overflow: hidden;              /* clip ripple */
+  position: relative;
+  overflow: hidden;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
