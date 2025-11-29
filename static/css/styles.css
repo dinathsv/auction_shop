@@ -496,7 +496,7 @@ form button[type="submit"] {
 
 footer {
   margin-top: auto;
-  width: 100%;              /* 🔹 full width bar */
+  width: 100%;
   padding: 1rem 2.5rem 1.4rem;
   text-align: center;
   color: var(--muted);
