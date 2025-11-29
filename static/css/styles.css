@@ -1690,7 +1690,6 @@ select:focus {
     color: #a6c0ff;
 }
 
-/* MOBILE */
 @media (max-width: 768px) {
     .product-form-grid {
         grid-template-columns: 1fr;
