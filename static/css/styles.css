@@ -79,7 +79,7 @@ main .form-card {
   left: 0;
   right: 0;
   z-index: 50;
-  width: 100%; /* 🔹 full width bar */
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
