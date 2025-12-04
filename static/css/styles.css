@@ -1613,7 +1613,6 @@ select:focus {
     outline: none;
 }
 
-/* FILE INPUT FIX */
 .form-field input[type="file"] {
     padding: 12px;
     background: #0f141a;
