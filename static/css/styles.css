@@ -308,7 +308,7 @@ main .form-card {
   border-color: var(--accent-soft);
 }
 
-/* ====== FORMS (generic) ====== */
+/* ===== FORMS (generic) ====== */
 
 form {
   background: var(--bg-elevated);
